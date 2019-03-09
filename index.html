@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>My chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link href="mychatstyle.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container-fluid hw-100">
+        <div class="row h-100">
+            <div class="col-sm-8 h-85 mt-3 align-self-start">
+                <span class="input-group-text font-weight-bold bg-dark text-white">Fruit Chat</span>
+                <div class="card h-90 rounded-lg">
+                    <div class="card-body h-100 d-flex flex-column-reverse overflow-auto">
+                        <ul id="messages"></ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4 mt-3 align-self-start">
+                <span class="input-group-text font-weight-bold bg-dark text-white">
+                    <div style="text-align: left; flex-grow: 1;">
+                        Fruits Online
+                    </div>
+                    <button class="btn bg-light btn-secondary btn-sm py-0 font-weight-bold text-dark"
+                            type="button" data-toggle="collapse" data-target="#ctarget"
+                            aria-expanded="true" aria-controls="ctarget">
+                        -
+                    </button>
+                </span>
+                <div id="ctarget" class="card h-90 rounded-lg">
+                    <div class="card-body h-100 d-flex flex-column-reverse overflow-auto">
+                        <ul id="onlineUsers"></ul>
+                    </div>
+
+                </div>
+            </div>
+            <div class="col-sm-12 my-3 align-self-center">
+                <form action="">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span id="n" class="input-group-text font-weight-bold bg-dark text-white">...</span>
+                        </div>
+                        <input id="m" autocomplete="off" type="text" class="form-control" placeholder="Type here...">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary font-weight-bold bg-dark text-white"
+                                    type="submit">Send</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+            integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+            crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+            integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+            crossorigin="anonymous"></script>
+    <script src="mychatlogic.js"></script>
+
+</body>
+
+</html>
