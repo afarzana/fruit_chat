@@ -1,11 +1,15 @@
 {
-  "name": "SENG513A3",
+  "name": "fruit_chat",
   "version": "1.0.0",
   "description": "Chat App",
   "dependencies": {
     "cookie-parser": "^1.4.4",
     "express": "^4.16.4",
+    "heroku": "^7.22.4",
     "moment": "^2.24.0",
     "socket.io": "^2.2.0"
+  },
+  "engines": {
+    "node": "10.x"
   }
 }

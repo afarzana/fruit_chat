@@ -5,6 +5,10 @@ app.use(cookieParser());
 const moment = require('moment');
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
+let port = process.env.PORT;
+if (port == null || port == "") {
+    port = 3000;
+}
 let onlineUsersSocketIDs=[];
 let onlineUsersUsernames=[];
 let messages = [];
@@ -126,6 +130,6 @@ io.on('connection', function(socket){
     });
 });
 
-http.listen(3000, function(){
+http.listen(port, function(){
     console.log('listening on *:3000');
 });
