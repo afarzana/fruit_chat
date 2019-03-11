@@ -1,8 +1,8 @@
 const express = require('express');
-const cookieParser = require('cookie-parser');
 const app = express();
-app.use(cookieParser());
 const moment = require('moment');
+const uuid = require('uuid-random');
+
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 let port = process.env.PORT;
@@ -11,7 +11,11 @@ if (port == null || port == "") {
 }
 let onlineUsersSocketIDs=[];
 let onlineUsersUsernames=[];
+
 let messages = [];
+let messageColors = [];
+let messageUUIDs = [];
+
 let fruits = [
     "Acai",
     "Apple",
@@ -49,7 +53,6 @@ let fruits = [
     "Olive",
     "Orange",
     "Papaya",
-    "Passion fruit",
     "Peach",
     "Pear",
     "Pepper",
@@ -67,65 +70,139 @@ let fruits = [
     "Watermelon",
     "Zucchini",
 ];
-
-/*
-app.use(function (req, res, next) {
-    // check if client sent cookie
-    let cookieName= "nickname";
-    const cookie = req.cookies.cookieName;
-    if (cookie === undefined)
-    {
-        // no: set a new cookie
-        let nickname = ;
-        randomNumber=randomNumber.substring(2,randomNumber.length);
-        res.cookie('cookieName',randomNumber, { maxAge: 900000, httpOnly: true });
-        console.log('cookie created successfully');
-    }
-    else
-    {
-        // yes, cookie was already present
-        console.log('cookie exists', cookie);
-    }
-    next(); // <-- important!
-});
-*/
+let usedFruits = [];
+let usedUsernames = [];
 
 app.use(express.static('public'));
 
 app.get('/', function(req, res){
-    console.log('Cookies: ', req.cookies);
     res.sendFile(__dirname + '/index.html');
 });
 
 io.on('connection', function(socket){
     console.log('a user connected');
-    let userName = fruits.shift();
-    onlineUsersUsernames.push(userName);
-    onlineUsersSocketIDs.push(socket.id);
-    socket.emit('username', userName);
-    socket.emit('user list', onlineUsersUsernames);
-    socket.emit('message list', messages);
-    socket.broadcast.emit('user addition', userName);
-    socket.on('chat message', function(msg, userName){
-        console.log('message: ' + msg);
-        let time = moment().format("HH:mm");
-        let message = time+" "+ userName+": "+msg;
+    socket.on('username color uuid', function(usernameExists, name, colorExists, col, uuidExists, id){
+        let username = "";
+        let color = 'green';
+        let userID = "";
+        if(usernameExists){
+            username = name;
+        }
+        else{
+            username = fruits.shift();
+            usedFruits.push(username);
+            socket.emit('set username', username);
+        }
+
+        if(!colorExists){
+            socket.emit('set color', color);
+        }
+        usedUsernames.push(username);
+        onlineUsersUsernames.push(username);
+        onlineUsersSocketIDs.push(socket.id);
+
+        if(!uuidExists){
+            userID = uuid();
+            socket.emit('set uuid', userID);
+        }
+
+        let message = username+" has joined the chat...";
         if(messages.length === 200){
             messages.shift();
+            messageColors.shift();
+            messageUUIDs.shift();
         }
         messages.push(message);
-        io.emit('chat message', message, userName);
+        messageColors.push('black');
+        messageUUIDs.push("");
+
+        io.emit('message relay', message, "", 'black', "");
+        io.emit('user list', onlineUsersUsernames);
+        socket.emit('message list', messages, messageColors, messageUUIDs);
     });
-    socket.on('username change', function(newName, userName){
 
+    socket.on('chat message', function(msg, name, color, id){
+        let time = moment().format("HH:mm");
+        let message = time+" "+name+": "+msg;
+        if(messages.length === 200){
+            messages.shift();
+            messageColors.shift();
+            messageUUIDs.shift();
+        }
+        messages.push(message);
+        messageColors.push(color);
+        messageUUIDs.push(id);
+        io.emit('message relay', message, name, color, id);
+    });
 
+    socket.on('username change', function(newName, name){
+        if(usedUsernames.includes(newName)){
+            socket.emit('username change fail', "Nickname already taken!");
+        }
+        else{
+            let index = usedFruits.indexOf(name);
+            let index2 = usedUsernames.indexOf(name);
+            let index3 = fruits.indexOf(newName);
+            if(index !== -1){
+                fruits.push(name);
+                usedFruits.splice(index, 1);
+            }
+            if(index3 !== -1){
+                let fruit = fruits.splice(index3, 1);
+                usedFruits.push(fruit[0]);
+            }
+            usedUsernames.splice(index2, 1);
+            usedUsernames.push(newName);
+
+            let index4 = onlineUsersSocketIDs.indexOf(socket.id);
+            onlineUsersUsernames[index4] = newName;
+
+            socket.emit('set username', newName);
+
+            let message = name+" has changed their nickname to \""+newName+"\"...";
+            if(messages.length === 200){
+                messages.shift();
+            }
+            messages.push(message);
+            messageColors.push('black');
+            messageUUIDs.push("");
+
+            io.emit('message relay', message, "", 'black', "");
+            io.emit('user list', onlineUsersUsernames);
+        }
+    });
+    socket.on('color change', function(color, name){
+        let message = name+" has changed their nickname color to \""+color+"\"...";
+        if(messages.length === 200){
+            messages.shift();
+            messageColors.shift();
+            messageUUIDs.shift();
+        }
+        messages.push(message);
+        messageColors.push('black');
+        messageUUIDs.push("");
+        io.emit('message relay', message, "", 'black', "");
     });
     socket.on('disconnect', function(){
         let index = onlineUsersSocketIDs.indexOf(socket.id);
         onlineUsersSocketIDs.splice(index, 1);
         let fruit = onlineUsersUsernames.splice(index, 1);
-        fruits.push(fruit[0]);
+        if(fruits.length < 52){
+            fruits.push(usedFruits[usedFruits.length - 1]+"+");
+        }
         socket.broadcast.emit('user removal', index);
+
+        let message = fruit[0]+" has left the chat...";
+        if(messages.length === 200){
+            messages.shift();
+            messageColors.shift();
+            messageUUIDs.shift();
+        }
+        messages.push(message);
+        messageColors.push('black');
+        messageUUIDs.push("");
+        io.emit('message relay', message, "", 'black', "");
+
         console.log('user disconnected');
     });
 });
